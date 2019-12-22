@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+canvas {
+    border: 1px solid #d3d3d3;
+    background-color: #f1f1f1;
+}
+</style>
+</head>
+<body>
+    <div>
+        <div><canvas id="mainboard" width="1002" height="1002"></canvas></div>
+        <button onclick="demo()">UP</button>
+    </div>
+</body>
+<script type="text/javascript">
+
+var Mainboard = function(){
+    this.canvas = document.getElementById("mainboard");
+    this.w = this.canvas.width;
+    this.h = this.canvas.height;
+    this.ctx = this.canvas.getContext("2d");
+    this.LineW = 0;
+    this.connerX = this.w/20;
+    this.connerY = this.h/20;
+    this.checkBound = function(x, y){
+        return (
+                (x > this.connerX) && (x < this.w - this.connerX) && (y > this.connerY) && (y < this.h - this.connerY)
+            );
+    }
+
+    this.drawBigRect = function(is_shift){
+        this.ctx.lineWidth = this.LineW;
+        this.ctx.strokeRect(this.connerX, this.connerY, this.w - this.connerX*2, this.h - this.connerY*2);
+        if (is_shift){
+            this.connerX = this.connerX + this.LineW;
+            this.connerY = this.connerY + this.LineW;
+        }
+        
+    }
+    this.outLineBig = function(){
+        this.LineW = this.w/100;
+        this.drawBigRect(true);
+    }
+    this.outLineSmall = function(){
+        this.LineW = this.w/500;
+        this.drawBigRect(false);
+    }
+    this.drawLine = function(x1, y1, x2, y2){
+        
+        this.ctx.beginPath();
+        this.ctx.moveTo(x1, y1);
+        this.ctx.lineTo(x2, y2);
+        this.ctx.stroke();
+    }
+
+    this.drawCrossLineGeneral = function(x, y, rw, rh){
+        this.drawLine(x, y, x + rw*2, y + rh*2);
+        this.drawLine(x, y + rh*2, x + rw*2, y);
+    }
+
+    this.drawDecorationType1 = function(x, y, w, h){
+        var xd = x + w;
+        var yd = y + h;
+        if(this.checkBound(xd, yd))
+            this.ctx.strokeRect(xd, yd, w, h);
+    }
+
+    this.drawDecorationType2 = function(x, y, w, h){
+        var xd = x + w;
+        var yd = y + h;
+        if(this.checkBound(xd, yd)){
+            this.ctx.moveTo(xd, yd);
+            this.ctx.lineTo(xd + w*2, yd);
+            this.ctx.stroke();
+            this.ctx.moveTo(xd, yd);
+            this.ctx.lineTo(xd, yd + h*2);
+            this.ctx.stroke();
+        }
+    }
+
+    this.drawDecoration = function(x, y){
+        for(var i = -1; i <= 1; i += 2){
+            for(var j = -1; j <= 1; j += 2){
+                switch (this.decorType){
+                    case 1:
+                        this.drawDecorationType1(x, y, i*5, j*5);
+                        break;
+                    case 2:
+                        this.drawDecorationType2(x, y, i*5, j*5);
+                        break;
+                }
+            }
+        }
+    }
+
+    this.drawHalf = function(connerX, connerY, rw, rh, flip){
+        if (flip){
+            rh = -rh;
+        }
+        for (var i = 0; i < 8; i++){
+            for (var j = 0; j < 4; j++){
+                this.ctx.strokeRect(connerX + i*rw, connerY + j*rh, rw, rh);
+            }
+        }
+        this.drawCrossLineGeneral(connerX + rw*3, connerY, rw, rh);
+        
+
+        var list_decor = [
+            [0, 3],
+            [2, 3],
+            [4, 3],
+            [6, 3],
+            [8, 3],
+            [1, 2],
+            [7, 2],
+        ];
+        for (var i = 0; i < list_decor.length; i++){
+            var posX = list_decor[i][0];
+            var posY = list_decor[i][1];
+            this.drawDecoration(connerX + rw*posX, connerY + rh*posY);
+        }
+
+        
+    }
+
+    this.drawBoth = function(){
+        var rw = (this.w - this.connerX*2)/8;
+        var rh = (this.h - this.connerY*2)/9;
+        this.drawHalf(this.connerX, this.connerY, rw, rh, false);
+        this.drawHalf(this.connerX, this.h - this.connerY, rw, rh, true);
+    }
+
+    this.drawMainBoard = function(){
+        console.log(this.decorType);
+        this.outLineBig();
+        this.outLineSmall();
+        this.drawBoth();
+    }
+    this.clear = function(){
+        this.ctx.clearRect(0, 0, this.w, this.h);
+        this.LineW = 0;
+        this.connerX = this.w/20;
+        this.connerY = this.h/20;
+    }
+};
+
+
+var mainboard = new Mainboard();
+mainboard.decorType = 1;
+mainboard.drawMainBoard();
+
+
+function demo(){
+    mainboard.clear();
+    mainboard.decorType = 2;
+    mainboard.drawMainBoard();
+}
+
+</script>
+</html>
